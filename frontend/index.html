@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>AI Agent Learning</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; max-width: 760px; margin: 40px auto; padding: 0 16px; }
+    h1 { margin: 0 0 8px; }
+    .sub { color: #666; margin: 0 0 16px; font-size: 14px; }
+    .chat { border: 1px solid #ddd; border-radius: 14px; padding: 16px; height: 460px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; background: rgba(0,0,0,0.02); }
+    .msg { padding: 10px 12px; border-radius: 10px; max-width: 80%; white-space: pre-wrap; }
+    .user { background: #e8f0fe; align-self: flex-end; }
+    .bot  { background: #f5f5f5; align-self: flex-start; }
+    .row { display: flex; gap: 8px; margin-top: 12px; }
+    .row input { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #ccc; }
+    .row button { padding: 12px 16px; border: 0; border-radius: 10px; background: #111827; color: #fff; cursor: pointer; }
+    .meta { margin-top: 10px; color: #666; font-size: 12px; }
+    code { background: #f3f3f3; padding: 2px 6px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <h1>AI Agent Learning</h1>
+  <p class="sub">Type a message and press Enter. The agent remembers context per browser session.</p>
+
+  <div id="chat" class="chat"></div>
+
+  <div class="row">
+    <input id="inp" type="text" placeholder="Say something…" />
+    <button id="send">Send</button>
+  </div>
+
+  <div class="meta">
+    Session: <code id="sid"></code>
+  </div>
+
+  <script>
+    // --- Persistent session_id in the browser ---
+    let sessionId = localStorage.getItem('session_id');
+    if (!sessionId) {
+      sessionId = (crypto.randomUUID && crypto.randomUUID()) || Math.random().toString(36).slice(2);
+      localStorage.setItem('session_id', sessionId);
+    }
+    document.getElementById('sid').textContent = sessionId;
+
+    // --- UI elements ---
+    const chat = document.getElementById('chat');
+    const inp  = document.getElementById('inp');
+    const send = document.getElementById('send');
+
+    function addMessage(text, who) {
+      const div = document.createElement('div');
+      div.className = `msg ${who}`;
+      div.textContent = text;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const text = inp.value.trim();
+      if (!text) return;
+      addMessage(text, 'user');
+      inp.value = '';
+      send.disabled = true;
+
+      try {
+        const res = await fetch('/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text, session_id: sessionId })
+        });
+        const data = await res.json();
+        // backend may echo/issue session_id; keep in sync just in case
+        if (data.session_id && data.session_id !== sessionId) {
+          sessionId = data.session_id;
+          localStorage.setItem('session_id', sessionId);
+          document.getElementById('sid').textContent = sessionId;
+        }
+        addMessage(data.reply || '(no reply)', 'bot');
+      } catch (e) {
+        console.error(e);
+        addMessage('Error contacting server.', 'bot');
+      } finally {
+        send.disabled = false;
+        inp.focus();
+      }
+    }
+
+    send.addEventListener('click', sendMessage);
+    inp.addEventListener('keydown', (e) => e.key === 'Enter' && sendMessage());
+
+    // Greeting
+    addMessage('👋 Hello! What do you wanna chat today? I am always here for you :)', 'bot');
+  </script>
+</body>
+</html>
