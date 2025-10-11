@@ -5,76 +5,114 @@
   <title>Welcome to BIER</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
+    /* ---------- Theme ---------- */
+    :root{
+      --bg:#f7f8ff; --card:#fff; --muted:#667085; --line:#e6e8f0;
+      --user:#e8f0fe; --bot:#f5f5f7; --ink:#111827;
+    }
+    *{box-sizing:border-box}
+
+    /* Page now wider and centered */
+    body{
+      font-family: system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+      max-width: 1040px;           /* wider page */
+      margin: 40px auto;
+      padding: 0 20px;
+      color:#111;
+      /* soft dotted wallpaper */
+      background:
+        radial-gradient(circle at 24px 24px, #e9ecff 2px, transparent 3px) 0 0/48px 48px,
+        radial-gradient(circle at 12px 12px, #f2f4ff 2px, transparent 3px) 0 0/48px 48px,
+        var(--bg);
+    }
+
+    /* ---------- Header ---------- */
+    .header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+    .avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
+      font-size:22px;background:#fff;border:1px solid var(--line); box-shadow:0 1px 0 rgba(0,0,0,.03)}
+    h1{margin:0}
+
+    /* ---------- Panel holds chat + stickers ---------- */
+    .panel{
+      position:relative;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:var(--card);
+      box-shadow:0 6px 24px rgba(17,24,39,.06);
+      padding:18px;
+      overflow:hidden;  /* keeps stickers behind edges */
+    }
+
+    /* Floating cute stickers around the edges (pure emoji) */
+    .stickers span{
+      position:absolute; font-size:28px; opacity:.22; user-select:none; pointer-events:none;
+      animation: float 9s ease-in-out infinite;
+    }
+    .stickers .s1{top:-6px;   left:14px;  animation-delay:0s}
+    .stickers .s2{top:8px;    right:18px; animation-delay:1.2s}
+    .stickers .s3{bottom:8px; left:22px;  animation-delay:2.1s}
+    .stickers .s4{bottom:-4px;right:24px; animation-delay:.6s}
+    @keyframes float{
+      0%,100%{ transform:translateY(0) }
+      50%    { transform:translateY(-8px) }
+    }
+
+    /* ---------- Chat area ---------- */
+    .chat{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:16px;
+      height: 68vh;                /* taller chat */
+      min-height: 520px;           /* ensure height on short screens */
+      overflow-y:auto;
+      display:flex; flex-direction:column; gap:8px;
+      background:var(--card);
+    }
+    .bubble{padding:10px 12px; border-radius:12px; max-width:86%; white-space:pre-wrap; word-break:break-word;}
+    .user{background:var(--user); align-self:flex-end;}
+    .bot{ background:var(--bot);  align-self:flex-start;}
+    .bubble img{max-width:280px; max-height:220px; border-radius:8px; display:block}
+
+    /* Catalog cards (unchanged, just a touch wider grid if needed) */
     .catalog-header{font-weight:600;margin:0 0 8px;color:#222}
-    .catalog-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap:12px; }
+    .catalog-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap:12px; }
     .catalog-card { border:1px solid var(--line); background:var(--card); border-radius:12px; padding:10px; }
-    .catalog-card img { width:100%; height:130px; object-fit:cover; border-radius:8px; display:block; }
+    .catalog-card img { width:100%; height:140px; object-fit:cover; border-radius:8px; display:block; }
     .catalog-title { margin-top:8px; font-weight:600; }
     .catalog-meta { color:var(--muted); font-size:12px; margin-top:2px; }
     .catalog-idx { font-weight:700; margin-bottom:6px; color:#555; }
-    :root{
-      --bg:#f8f8f8; --card:#fff; --muted:#666; --line:#e6e6e6;
-      --user:#e8f0fe; --bot:#f5f5f5; --ink:#111827;
-    }
-    *{box-sizing:border-box}
-    body{
-      font-family: system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
-      max-width:760px; margin:40px auto; padding:0 16px; background:var(--bg); color:#111;
-    }
 
-    /* Header */
-    .header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
-    .avatar{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;
-      font-size:20px;background:#fff;border:1px solid var(--line)}
-    h1{margin:0}
-
-    /* Chat area */
-    .chat{
-      border:1px solid var(--line); border-radius:14px; padding:16px; height:480px;
-      overflow-y:auto; display:flex; flex-direction:column; gap:8px; background:var(--card);
-    }
-    .bubble{padding:10px 12px; border-radius:12px; max-width:80%; white-space:pre-wrap; word-break:break-word;}
-    .user{background:var(--user); align-self:flex-end;}
-    .bot{ background:var(--bot);  align-self:flex-start;}
-    .bubble img{max-width:220px; max-height:180px; border-radius:8px; display:block}
-
-    /* Composer */
+    /* ---------- Composer ---------- */
     .composer{display:flex; gap:10px; align-items:center; margin-top:12px}
     .box{flex:1; display:flex; align-items:center; gap:8px; border:1px solid var(--line);
-      background:var(--card); border-radius:14px; padding:8px 12px}
+      background:var(--card); border-radius:14px; padding:10px 12px}
     .attach-btn{border:0; background:transparent; font-size:18px; cursor:pointer; line-height:1; color:#444}
     .attach-btn:hover{color:#000}
     .box input[type="text"]{flex:1; border:0; outline:none; font-size:16px; background:transparent}
-    .send-btn{width:44px;height:44px;border-radius:50%;border:0;background:var(--ink);color:#fff;
-      font-size:18px;cursor:pointer;display:grid;place-items:center}
+    .send-btn{width:48px;height:48px;border-radius:50%;border:0;background:var(--ink);color:#fff;
+      font-size:18px;cursor:pointer;display:grid;place-items:center; box-shadow:0 3px 10px rgba(17,24,39,.18)}
     .send-btn[disabled]{opacity:.7; cursor:not-allowed}
-    #img{display:none} /* hidden file input */
+    #img{display:none}
 
-    /* Small chip preview inside composer */
+    /* Tiny chip preview in composer */
     .chip{display:flex;align-items:center;gap:6px;padding:4px 6px;border:1px solid #ddd;border-radius:10px;background:#fff}
     .chip img{width:28px;height:28px;object-fit:cover;border-radius:6px;border:1px solid #e6e6e6}
     .chip button{border:0;background:transparent;color:#b91c1c;cursor:pointer;font-size:14px;line-height:1}
     .hidden{display:none}
 
-    /* Typing indicator (three bouncing dots) */
+    /* Typing indicator */
     .typing { color:#555; font-size:13px; }
     .dots{ display:inline-flex; gap:4px; vertical-align:middle; margin-left:4px }
     .dot{ width:6px; height:6px; border-radius:50%; background:#888; opacity:.6; animation: bounce 1s infinite ease-in-out }
     .dot:nth-child(2){ animation-delay:.15s }
     .dot:nth-child(3){ animation-delay:.3s }
-    @keyframes bounce{
-      0%,80%,100%{ transform: translateY(0); opacity:.6 }
-      40%{ transform: translateY(-4px); opacity:1 }
-    }
+    @keyframes bounce{ 0%,80%,100%{ transform: translateY(0); opacity:.6 } 40%{ transform: translateY(-4px); opacity:1 } }
 
-    /* Pop-in animation for new bubbles */
+    /* Pop-in for bubbles */
     .pop { animation: popin .18s ease-out both }
-    @keyframes popin{
-      from{ transform: scale(.97) translateY(6px); opacity:.0 }
-      to  { transform: scale(1)    translateY(0);   opacity:1  }
-    }
+    @keyframes popin{ from{ transform: scale(.97) translateY(6px); opacity:.0 } to{ transform: scale(1) translateY(0); opacity:1 } }
 
-    /* hide session meta completely but keep node for JS */
+    /* Hide session meta node but keep it for JS */
     .meta{display:none}
   </style>
 </head>
@@ -84,22 +122,32 @@
     <h1>Hi!</h1>
   </div>
 
-  <div id="chat" class="chat" aria-label="Chat history"></div>
-
-  <div class="composer">
-    <div class="box">
-      <button id="attach" class="attach-btn" title="Attach image" aria-label="Attach image">📎</button>
-
-      <!-- tiny thumbnail chip preview -->
-      <div id="chip" class="chip hidden" aria-live="polite">
-        <img id="chipImg" alt="selected image preview">
-        <button id="chipX" title="Remove">✕</button>
-      </div>
-
-      <input id="inp" type="text" placeholder="Say something…" aria-label="Message input" />
+  <div class="panel">
+    <!-- floating cute stickers that sit around the chat area -->
+    <div class="stickers" aria-hidden="true">
+      <span class="s1">🐻</span>
+      <span class="s2">🌸</span>
+      <span class="s3">⭐️</span>
+      <span class="s4">🧸</span>
     </div>
-    <button id="send" class="send-btn" aria-label="Send message">⮕</button>
-    <input id="img" type="file" accept="image/*" />
+
+    <div id="chat" class="chat" aria-label="Chat history"></div>
+
+    <div class="composer">
+      <div class="box">
+        <button id="attach" class="attach-btn" title="Attach image" aria-label="Attach image">📎</button>
+
+        <!-- tiny thumbnail chip preview -->
+        <div id="chip" class="chip hidden" aria-live="polite">
+          <img id="chipImg" alt="selected image preview">
+          <button id="chipX" title="Remove">✕</button>
+        </div>
+
+        <input id="inp" type="text" placeholder="Say something…" aria-label="Message input" />
+      </div>
+      <button id="send" class="send-btn" aria-label="Send message">⮕</button>
+      <input id="img" type="file" accept="image/*" />
+    </div>
   </div>
 
   <!-- keep session id node but hidden so JS doesn’t error -->
@@ -230,7 +278,6 @@
 
         // replace typing bubble content with final reply
         const replyText = data.reply || '(no reply)';
-        // Try to render catalog cards; if it returns false, fall back to plain text
         if (!tryRenderNumberedCatalog(typing, replyText)) {
           typing.className = 'bubble bot pop';
           typing.textContent = replyText;
@@ -248,22 +295,17 @@
     function tryRenderNumberedCatalog(typingDiv, replyText) {
       if (!replyText) return false;
 
-      // split lines, trim empties
       const rawLines = replyText.split('\n').map(l => l.trim()).filter(Boolean);
       if (!rawLines.length) return false;
 
-      // skip optional "(query: ...)" line
       let i = 0;
       if (/^\(query:\s*.+\)$/i.test(rawLines[0])) i = 1;
 
-      // require the header
       const headerLine = rawLines[i] || "";
       if (!/^Here are some picks from my catalog:/i.test(headerLine)) return false;
 
-      // collect numbered items after the header
       const itemLines = rawLines.slice(i + 1);
 
-      // 1. **Name** — $1999 · Brand (image: /catalog_images/xxx.jpg)
       const re = /^\s*(\d+)\.\s+\*\*(.+?)\*\*(?:\s+—\s+\$?([\d.]+))?(?:\s+·\s+([^(]+?))?\s+\(image:\s*(.+?)\s*\)\s*$/;
 
       const items = [];
@@ -279,7 +321,6 @@
       }
       if (!items.length) return false;
 
-      // build a new bubble that includes the header + grid
       const bubble = document.createElement('div');
       bubble.className = 'bubble bot pop';
 
@@ -320,17 +361,17 @@
 
       bubble.appendChild(grid);
       typingDiv.replaceWith(bubble);
-      // autoscroll is already called after replace in your flow
       return true;
     }
+
     send.addEventListener('click', sendMessage);
     inp.addEventListener('keydown', (e) => e.key === 'Enter' && sendMessage());
 
     // Greeting
     addTextBubble('👋 Hello! I am BiBi, your personal shopping assistant.\nHow can I help you today? 😘', 'bot');
     setTimeout(() => {
-    addTextBubble("✨ Here’s what I can do:\n1️⃣ Chat with you about anything 🗣️\n2️⃣ Suggest awesome products 🎁\n3️⃣ Search by image 🔍 Just upload and I’ll find it!", 'bot');
-  }, 800);
+      addTextBubble("✨ Here’s what I can do:\n1️⃣ Chat with you about anything 🗣️\n2️⃣ Suggest awesome products 🎁\n3️⃣ Search by image 🔍 Just upload and I’ll find it!", 'bot');
+    }, 800);
   </script>
 </body>
 </html>
