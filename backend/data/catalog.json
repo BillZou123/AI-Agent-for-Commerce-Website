@@ -1,0 +1,92 @@
+[
+  {
+    "id": "p1",
+    "name": "Apple MacBook Pro 14 (M2)",
+    "category": "electronics",
+    "brand": "apple",
+    "tags": ["macbook", "laptop", "notebook", "retina", "m2"],
+    "image": "/catalog_images/mbp14.jpg",
+    "price": 1999
+  },
+  {
+    "id": "p2",
+    "name": "Dell XPS 13",
+    "category": "electronics",
+    "brand": "dell",
+    "tags": ["xps", "laptop", "ultrabook", "13"],
+    "image": "/catalog_images/xps13.jpg",
+    "price": 1299
+  },
+  {
+    "id": "p3",
+    "name": "Sony WH-1000XM5 Wireless Headphones",
+    "category": "electronics",
+    "brand": "sony",
+    "tags": ["headphones", "wireless", "noise-cancelling", "music"],
+    "image": "/catalog_images/wh1000xm5.jpg",
+    "price": 399
+  },
+  {
+    "id": "p4",
+    "name": "Samsung Galaxy S24 Ultra",
+    "category": "electronics",
+    "brand": "samsung",
+    "tags": ["smartphone", "android", "galaxy"],
+    "image": "/catalog_images/s24ultra.jpg",
+    "price": 1199
+  },
+  {
+    "id": "p5",
+    "name": "Nike Air Zoom Pegasus 40",
+    "category": "footwear",
+    "brand": "nike",
+    "tags": ["shoes", "running", "sneakers", "sport"],
+    "image": "/catalog_images/pegasus40.jpg",
+    "price": 130
+  },
+  {
+    "id": "p6",
+    "name": "Puma Sports T-shirt",
+    "category": "clothing",
+    "brand": "puma",
+    "tags": ["t-shirt", "sportswear", "training", "fitness"],
+    "image": "/catalog_images/puma_tshirt.jpg",
+    "price": 35
+  },
+  {
+    "id": "p7",
+    "name": "Levi's 511 Slim Fit Jeans",
+    "category": "clothing",
+    "brand": "levis",
+    "tags": ["jeans", "denim", "casual", "pants"],
+    "image": "/catalog_images/levis_511.jpg",
+    "price": 70
+  },
+  {
+    "id": "p8",
+    "name": "Ray-Ban Aviator Sunglasses",
+    "category": "accessories",
+    "brand": "ray-ban",
+    "tags": ["sunglasses", "aviator", "fashion", "accessory"],
+    "image": "/catalog_images/rayban_aviator.jpg",
+    "price": 150
+  },
+  {
+    "id": "p9",
+    "name": "IKEA Markus Office Chair",
+    "category": "furniture",
+    "brand": "ikea",
+    "tags": ["chair", "office", "ergonomic", "furniture"],
+    "image": "/catalog_images/ikea_markus.jpg",
+    "price": 250
+  },
+  {
+    "id": "p10",
+    "name": "Dyson V15 Vacuum Cleaner",
+    "category": "home appliances",
+    "brand": "dyson",
+    "tags": ["vacuum", "cleaner", "home"],
+    "image": "/catalog_images/dyson_v15.jpg",
+    "price": 699
+  }
+]
