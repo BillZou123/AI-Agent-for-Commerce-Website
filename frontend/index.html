@@ -4,35 +4,42 @@
   <meta charset="utf-8" />
   <title>Welcome to BIER</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <style>
-    /* ---------- Theme ---------- */
+    /* =============================
+       THEME & GLOBAL LAYOUT
+       - Defines colors, fonts, page width, and a subtle emoji-ish wallpaper
+       ============================= */
     :root{
       --bg:#f7f8ff; --card:#fff; --muted:#667085; --line:#e6e8f0;
       --user:#e8f0fe; --bot:#f5f5f7; --ink:#111827;
     }
     *{box-sizing:border-box}
-
-    /* Page now wider and centered */
     body{
       font-family: system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
-      max-width: 1040px;           /* wider page */
+      max-width: 1040px;
       margin: 40px auto;
       padding: 0 20px;
       color:#111;
-      /* soft dotted wallpaper */
       background:
         radial-gradient(circle at 24px 24px, #e9ecff 2px, transparent 3px) 0 0/48px 48px,
         radial-gradient(circle at 12px 12px, #f2f4ff 2px, transparent 3px) 0 0/48px 48px,
         var(--bg);
     }
 
-    /* ---------- Header ---------- */
+    /* =============================
+       HEADER (title + cute avatar)
+       ============================= */
     .header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-    .avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
-      font-size:22px;background:#fff;border:1px solid var(--line); box-shadow:0 1px 0 rgba(0,0,0,.03)}
+    .avatar{
+      width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
+      font-size:22px;background:#fff;border:1px solid var(--line); box-shadow:0 1px 0 rgba(0,0,0,.03)
+    }
     h1{margin:0}
 
-    /* ---------- Panel holds chat + stickers ---------- */
+    /* =============================
+       PANEL (frame that holds chat + stickers)
+       ============================= */
     .panel{
       position:relative;
       border-radius:16px;
@@ -40,30 +47,29 @@
       background:var(--card);
       box-shadow:0 6px 24px rgba(17,24,39,.06);
       padding:18px;
-      overflow:hidden;  /* keeps stickers behind edges */
+      overflow:hidden;
     }
 
-    /* Floating cute stickers around the edges (pure emoji) */
+    /* Floating decorative stickers (pure emoji, non-interactive) */
     .stickers span{
       position:absolute; font-size:28px; opacity:.22; user-select:none; pointer-events:none;
       animation: float 9s ease-in-out infinite;
     }
-    .stickers .s1{top:-6px;   left:14px;  animation-delay:0s}
-    .stickers .s2{top:8px;    right:18px; animation-delay:1.2s}
-    .stickers .s3{bottom:8px; left:22px;  animation-delay:2.1s}
+    .stickers .s1{top:-6px; left:14px;  animation-delay:0s}
+    .stickers .s2{top:8px;  right:18px; animation-delay:1.2s}
+    .stickers .s3{bottom:8px; left:22px; animation-delay:2.1s}
     .stickers .s4{bottom:-4px;right:24px; animation-delay:.6s}
-    @keyframes float{
-      0%,100%{ transform:translateY(0) }
-      50%    { transform:translateY(-8px) }
-    }
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 
-    /* ---------- Chat area ---------- */
+    /* =============================
+       CHAT AREA (scrollable history)
+       ============================= */
     .chat{
       border:1px solid var(--line);
       border-radius:14px;
       padding:16px;
-      height: 68vh;                /* taller chat */
-      min-height: 520px;           /* ensure height on short screens */
+      height: 68vh;             /* tall chat window */
+      min-height: 520px;        /* keeps size on short screens */
       overflow-y:auto;
       display:flex; flex-direction:column; gap:8px;
       background:var(--card);
@@ -73,7 +79,9 @@
     .bot{ background:var(--bot);  align-self:flex-start;}
     .bubble img{max-width:280px; max-height:220px; border-radius:8px; display:block}
 
-    /* Catalog cards (unchanged, just a touch wider grid if needed) */
+    /* =============================
+       CATALOG CARDS (grid render of product results)
+       ============================= */
     .catalog-header{font-weight:600;margin:0 0 8px;color:#222}
     .catalog-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap:12px; }
     .catalog-card { border:1px solid var(--line); background:var(--card); border-radius:12px; padding:10px; }
@@ -82,48 +90,57 @@
     .catalog-meta { color:var(--muted); font-size:12px; margin-top:2px; }
     .catalog-idx { font-weight:700; margin-bottom:6px; color:#555; }
 
-    /* ---------- Composer ---------- */
+    /* =============================
+       COMPOSER (input row with attach + send)
+       ============================= */
     .composer{display:flex; gap:10px; align-items:center; margin-top:12px}
-    .box{flex:1; display:flex; align-items:center; gap:8px; border:1px solid var(--line);
-      background:var(--card); border-radius:14px; padding:10px 12px}
+    .box{
+      flex:1; display:flex; align-items:center; gap:8px; border:1px solid var(--line);
+      background:var(--card); border-radius:14px; padding:10px 12px
+    }
     .attach-btn{border:0; background:transparent; font-size:18px; cursor:pointer; line-height:1; color:#444}
     .attach-btn:hover{color:#000}
     .box input[type="text"]{flex:1; border:0; outline:none; font-size:16px; background:transparent}
-    .send-btn{width:48px;height:48px;border-radius:50%;border:0;background:var(--ink);color:#fff;
-      font-size:18px;cursor:pointer;display:grid;place-items:center; box-shadow:0 3px 10px rgba(17,24,39,.18)}
+    .send-btn{
+      width:48px;height:48px;border-radius:50%;border:0;background:var(--ink);color:#fff;
+      font-size:18px;cursor:pointer;display:grid;place-items:center; box-shadow:0 3px 10px rgba(17,24,39,.18)
+    }
     .send-btn[disabled]{opacity:.7; cursor:not-allowed}
-    #img{display:none}
+    #img{display:none} /* hidden file input */
 
-    /* Tiny chip preview in composer */
+    /* Chip preview for selected image inside composer */
     .chip{display:flex;align-items:center;gap:6px;padding:4px 6px;border:1px solid #ddd;border-radius:10px;background:#fff}
     .chip img{width:28px;height:28px;object-fit:cover;border-radius:6px;border:1px solid #e6e6e6}
     .chip button{border:0;background:transparent;color:#b91c1c;cursor:pointer;font-size:14px;line-height:1}
     .hidden{display:none}
 
-    /* Typing indicator */
+    /* Typing indicator & basic animations */
     .typing { color:#555; font-size:13px; }
     .dots{ display:inline-flex; gap:4px; vertical-align:middle; margin-left:4px }
     .dot{ width:6px; height:6px; border-radius:50%; background:#888; opacity:.6; animation: bounce 1s infinite ease-in-out }
     .dot:nth-child(2){ animation-delay:.15s }
     .dot:nth-child(3){ animation-delay:.3s }
-    @keyframes bounce{ 0%,80%,100%{ transform: translateY(0); opacity:.6 } 40%{ transform: translateY(-4px); opacity:1 } }
-
-    /* Pop-in for bubbles */
+    @keyframes bounce{0%,80%,100%{transform: translateY(0); opacity:.6}40%{transform: translateY(-4px); opacity:1}}
     .pop { animation: popin .18s ease-out both }
-    @keyframes popin{ from{ transform: scale(.97) translateY(6px); opacity:.0 } to{ transform: scale(1) translateY(0); opacity:1 } }
+    @keyframes popin{from{transform:scale(.97) translateY(6px); opacity:.0}to{transform:scale(1) translateY(0); opacity:1}}
 
-    /* Hide session meta node but keep it for JS */
+    /* Hidden node to hold session id (used by JS, invisible to users) */
     .meta{display:none}
   </style>
 </head>
 <body>
+  <!-- =============================
+       HEADER (title + mascot)
+       ============================= -->
   <div class="header">
     <div class="avatar" aria-hidden="true">🐻</div>
     <h1>Hi!</h1>
   </div>
 
+  <!-- =============================
+       MAIN PANEL (chat container + floating stickers)
+       ============================= -->
   <div class="panel">
-    <!-- floating cute stickers that sit around the chat area -->
     <div class="stickers" aria-hidden="true">
       <span class="s1">🐻</span>
       <span class="s2">🌸</span>
@@ -131,13 +148,15 @@
       <span class="s4">🧸</span>
     </div>
 
+    <!-- Chat history -->
     <div id="chat" class="chat" aria-label="Chat history"></div>
 
+    <!-- Composer: attach, preview chip, text input, send -->
     <div class="composer">
       <div class="box">
         <button id="attach" class="attach-btn" title="Attach image" aria-label="Attach image">📎</button>
 
-        <!-- tiny thumbnail chip preview -->
+        <!-- Tiny thumbnail chip preview -->
         <div id="chip" class="chip hidden" aria-live="polite">
           <img id="chipImg" alt="selected image preview">
           <button id="chipX" title="Remove">✕</button>
@@ -150,11 +169,14 @@
     </div>
   </div>
 
-  <!-- keep session id node but hidden so JS doesn’t error -->
+  <!-- Session id (hidden but available to JS) -->
   <div class="meta">Session: <code id="sid"></code></div>
 
   <script>
-    // --- session id (hidden) ---
+    // =============================
+    // SESSION MANAGEMENT
+    // - Persistent session id per browser (stored in localStorage)
+    // =============================
     let sessionId = localStorage.getItem('session_id');
     if (!sessionId) {
       sessionId = (crypto.randomUUID && crypto.randomUUID()) || Math.random().toString(36).slice(2);
@@ -162,7 +184,9 @@
     }
     document.getElementById('sid').textContent = sessionId;
 
-    // --- elements ---
+    // =============================
+    // DOM REFERENCES
+    // =============================
     const chat   = document.getElementById('chat');
     const inp    = document.getElementById('inp');
     const send   = document.getElementById('send');
@@ -175,6 +199,9 @@
 
     let pendingFile = null;
 
+    // =============================
+    // CHAT HELPERS (render bubbles + autoscroll + typing)
+    // =============================
     function autoscroll(){ chat.scrollTop = chat.scrollHeight; }
 
     function addTextBubble(text, who){
@@ -197,7 +224,7 @@
       return div;
     }
 
-    // typing bubble that we will REPLACE with the final reply
+    // Temporary "thinking..." bubble that gets replaced by the real reply
     function showTypingBubble(){
       const div = document.createElement('div');
       div.className = 'bubble bot typing pop';
@@ -207,6 +234,9 @@
       return div;
     }
 
+    // =============================
+    // FILE ATTACHMENTS (open picker, show/remove chip)
+    // =============================
     attach.addEventListener('click', () => img.click());
 
     function showChip(file){
@@ -228,20 +258,27 @@
       if (f && f.type.startsWith('image/')) showChip(f);
     });
 
+    // =============================
+    // SEND MESSAGE FLOW
+    // - Optimistic user bubble(s)
+    // - Upload image if present
+    // - POST /chat
+    // - Replace typing bubble with final reply
+    // =============================
     async function sendMessage(){
       const text = inp.value.trim();
       const file = pendingFile;
 
       if (!text && !file) return;
 
-      // optimistic user bubbles with animation
+      // Optimistic user rendering
       if (text) addTextBubble(text, 'user');
       if (file) addImageBubble(URL.createObjectURL(file), 'user', file.name);
 
       inp.value = '';
       send.disabled = true;
 
-      // upload image first (if any)
+      // Upload the image first (if any)
       let imageUrl = null;
       if (file) {
         const fd = new FormData();
@@ -259,7 +296,7 @@
         clearChip();
       }
 
-      // immediately show typing bubble and replace it later
+      // Show typing indicator immediately
       const typing = showTypingBubble();
 
       try{
@@ -276,7 +313,7 @@
           document.getElementById('sid').textContent = sessionId;
         }
 
-        // replace typing bubble content with final reply
+        // Try to render product cards; otherwise show plain text
         const replyText = data.reply || '(no reply)';
         if (!tryRenderNumberedCatalog(typing, replyText)) {
           typing.className = 'bubble bot pop';
@@ -292,29 +329,33 @@
       }
     }
 
+    // =============================
+    // CATALOG RENDERING
+    // - Parses a numbered, markdown-ish block from backend
+    // - Renders a header + responsive product grid with images
+    // - Supports both text-based and image-based headers
+    // =============================
     function tryRenderNumberedCatalog(typingDiv, replyText) {
       if (!replyText) return false;
 
-      // Split lines and clean up empty ones
+      // Split and normalize lines
       const rawLines = replyText.split('\n').map(l => l.trim()).filter(Boolean);
       if (!rawLines.length) return false;
 
-      // Skip optional "(query: ...)" line
+      // Optional "(query: ...)" prologue
       let i = 0;
       if (/^\(query:\s*.+\)$/i.test(rawLines[0])) i = 1;
 
-      // Extract the header line
+      // Header must be one of our known forms
       const headerLine = rawLines[i] || "";
-      // Match both text-based and image-based recommendation headers
-      if (!/^Here are some picks from my catalog/i.test(headerLine) &&
-          !/^Here are some picks from my catalog based on the image you provided/i.test(headerLine)) {
-        return false;
-      }
+      const isTextHeader  = /^Here are some picks from my catalog:/i.test(headerLine);
+      const isImageHeader = /^Here are some picks from my catalog based on the image you provided:/i.test(headerLine);
+      if (!isTextHeader && !isImageHeader) return false;
 
-      // Collect numbered items after the header
+      // Numbered items follow the header
       const itemLines = rawLines.slice(i + 1);
 
-      // Match format like:
+      // Pattern:
       // 1. **Name** — $1999 · Brand (image: /catalog_images/xxx.jpg)
       const re = /^\s*(\d+)\.\s+\*\*(.+?)\*\*(?:\s+—\s+\$?([\d.]+))?(?:\s+·\s+([^(]+?))?\s+\(image:\s*(.+?)\s*\)\s*$/;
 
@@ -331,7 +372,7 @@
       }
       if (!items.length) return false;
 
-      // Build a new chat bubble with the header and product cards
+      // Build a new bot bubble with header + grid
       const bubble = document.createElement('div');
       bubble.className = 'bubble bot pop';
 
@@ -372,13 +413,20 @@
 
       bubble.appendChild(grid);
       typingDiv.replaceWith(bubble);
+      // Keep scroll pinned to bottom after replacement
+      setTimeout(() => { chat.scrollTop = chat.scrollHeight; }, 0);
       return true;
     }
 
+    // =============================
+    // EVENTS
+    // =============================
     send.addEventListener('click', sendMessage);
     inp.addEventListener('keydown', (e) => e.key === 'Enter' && sendMessage());
 
-    // Greeting
+    // =============================
+    // INITIAL GREETING
+    // =============================
     addTextBubble('👋 Hello! I am BiBi, your personal shopping assistant.\nHow can I help you today? 😘', 'bot');
     setTimeout(() => {
       addTextBubble("✨ Here’s what I can do:\n1️⃣ Chat with you about anything 🗣️\n2️⃣ Suggest awesome products 🎁\n3️⃣ Search by image 🔍 Just upload and I’ll find it!", 'bot');

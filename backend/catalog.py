@@ -4,7 +4,7 @@ from .utils import toks, norm
 import os, math
 from openai import OpenAI
 
-# Lazy OpenAI client for embeddings
+# ----- Embedding client setup -----
 _DEF_EMB_MODEL = os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small")
 _client = None
 def _client_or_none():
@@ -16,155 +16,111 @@ def _client_or_none():
         _client = OpenAI(api_key=api_key)
     return _client
 
-# --- Simple vector helpers (no numpy) ---
-def _dot(a, b):
-    return sum(x*y for x, y in zip(a, b))
+# ----- Vector math helpers -----
+def _dot(a, b): return sum(x*y for x, y in zip(a, b))
+def _norm(a): return math.sqrt(sum(x*x for x in a)) or 1.0
+def _cos(a, b): return _dot(a, b) / (_norm(a) * _norm(b))
 
-def _norm(a):
-    return math.sqrt(sum(x*x for x in a)) or 1.0
-
-def _cos(a, b):
-    return _dot(a, b) / (_norm(a) * _norm(b))
-
-# --- Caches ---
-_TAG_EMBED_CACHE = {}   # tag -> [float,...]
-_TOKEN_EMBED_CACHE = {} # token -> [float,...]
+# ----- Embedding caches -----
+_TAG_EMBED_CACHE = {}   # tag -> vector
+_TOKEN_EMBED_CACHE = {} # token -> vector
 
 def _embed_texts(texts, model=None):
-    """
-    Embed a list of strings; returns a list of embeddings.
-    Falls back to [] on error.
-    """
+    """Batch embed a list of strings; return vectors or [] on error."""
     cli = _client_or_none()
-    if not cli:
-        return []
+    if not cli: return []
     model = model or _DEF_EMB_MODEL
-    # Render may batch aggressively; keep batches modest
-    out = []
-    B = 96
+    out, B = [], 96
     for i in range(0, len(texts), B):
         chunk = texts[i:i+B]
         try:
             res = cli.embeddings.create(model=model, input=chunk)
-            # API returns objects with .embedding for each data item
             out.extend([d.embedding for d in res.data])
         except Exception as e:
             print("embedding error:", e)
-            # keep alignment with chunk length (skip)
             out.extend([[] for _ in chunk])
     return out
 
 def _ensure_tag_embeddings():
-    """
-    Precompute embeddings for all tags in TAG_VOCAB if not cached.
-    """
+    """Precompute embeddings for all catalog tags if missing."""
     missing = [t for t in TAG_VOCAB if t not in _TAG_EMBED_CACHE]
-    if not missing:
-        return
+    if not missing: return
     vecs = _embed_texts(missing)
-    if not vecs:
-        return
+    if not vecs: return
     for t, v in zip(missing, vecs):
         _TAG_EMBED_CACHE[t] = v
 
 def _token_embedding(tok):
-    """
-    Get (and cache) the embedding for a single token.
-    """
+    """Get embedding for a single token (cached)."""
     tok = norm(tok)
     if tok in _TOKEN_EMBED_CACHE:
         return _TOKEN_EMBED_CACHE[tok]
     vecs = _embed_texts([tok])
-    if not vecs or not vecs[0]:
-        return None
+    if not vecs or not vecs[0]: return None
     _TOKEN_EMBED_CACHE[tok] = vecs[0]
     return vecs[0]
 
+# ----- Embedding-based search -----
 def search_catalog_embeddings(query, topk=5, threshold=0.85, max_tags_per_token=5):
     """
-    Embedding-based semantic tag search.
-    1) tokenize the query
-    2) embed each token
-    3) compare to tag embeddings; select tags with cosine >= threshold
-    4) score items by overlap with selected tags (+ brand/category boosts)
-    5) fallback to keyword search on miss or error
+    Semantic search using embeddings:
+    - tokenize query
+    - embed tokens
+    - match tokens to catalog tags above threshold
+    - score products by tag/brand/category overlap
+    - fallback to keyword search if no matches
     """
     terms = toks(query)
-    if not terms:
-        return search_catalog(query, topk=topk)
+    if not terms: return search_catalog(query, topk=topk)
 
-    # Ensure we have tag embeddings
     _ensure_tag_embeddings()
-    if not _TAG_EMBED_CACHE:  # no embeddings available (likely missing API key)
+    if not _TAG_EMBED_CACHE:
         return search_catalog(query, topk=topk)
 
-    # Build a set of selected tags via similarity
     selected_tags = set()
-    tag_items = list(_TAG_EMBED_CACHE.items())  # [(tag, vec), ...]
+    tag_items = list(_TAG_EMBED_CACHE.items())
 
     for t in terms:
         tv = _token_embedding(t)
-        if tv is None:
-            continue
-        # rank tags by cosine similarity to token embedding
-        sims = []
-        for tag, vec in tag_items:
-            if not vec:
-                continue
-            sims.append(( _cos(tv, vec), tag ))
+        if tv is None: continue
+        sims = [( _cos(tv, vec), tag ) for tag, vec in tag_items if vec]
         sims.sort(reverse=True, key=lambda x: x[0])
 
-        # pick tags above threshold, up to max_tags_per_token
         picked = 0
         for sim, tag in sims:
-            if sim < threshold:
-                break
+            if sim < threshold: break
             selected_tags.add(tag)
             picked += 1
-            if picked >= max_tags_per_token:
-                break
+            if picked >= max_tags_per_token: break
 
     if not selected_tags:
-        # if nothing matched semantically, fall back
         return search_catalog(query, topk=topk)
 
-    # Score products by overlap with selected tags (+ brand/category boosts)
-    ranked = []
-    term_set = set(terms)
+    ranked, term_set = [], set(terms)
     for it in CATALOG:
         item_tags = set(norm(t) for t in it.get("tags", []))
         score = len(selected_tags & item_tags)
 
-        brand = norm(it.get("brand"))
-        cat   = norm(it.get("category"))
+        brand, cat = norm(it.get("brand")), norm(it.get("category"))
         if brand and brand in term_set: score += 2
         if cat   and cat   in term_set: score += 1
-
         if score > 0:
             ranked.append((score, it))
 
     ranked.sort(key=lambda x: x[0], reverse=True)
     hits = [it for _, it in ranked[:int(topk)]]
+    return hits or search_catalog(query, topk=topk)
 
-    # Fallback if still empty
-    if not hits:
-        return search_catalog(query, topk=topk)
-    return hits
-
-# Optional: keep a friendly alias so callers can switch with minimal changes
 def search_catalog_llm(query, topk=5, threshold=0.85):
-    """
-    Convenience wrapper that uses embedding-based semantic matching.
-    """
+    """Convenience wrapper for embedding-based search."""
     return search_catalog_embeddings(query, topk=topk, threshold=threshold)
 
-# ---- Load catalog and build derived fields ----
+# ----- Catalog data loading -----
 with open(CATALOG_JSON, "r") as f:
     RAW_CATALOG = json.load(f)
 
 CATALOG = []
 for item in RAW_CATALOG:
-    # Build a lightweight keyword set from name/category/brand/tags
     kw = set(toks(item.get("name"))) \
        | set(toks(item.get("category"))) \
        | set(toks(item.get("brand"))) \
@@ -172,31 +128,43 @@ for item in RAW_CATALOG:
     item["keywords"] = sorted(list(kw))
     CATALOG.append(item)
 
-# Tag vocabulary (normalized) for LLM mapping
 TAG_VOCAB = sorted(set(
-    norm(tag)
-    for it in CATALOG
-    for tag in it.get("tags", []) if tag is not None
+    norm(tag) for it in CATALOG for tag in it.get("tags", []) if tag is not None
 ))
 
-
+# ----- Keyword-based search -----
 def search_catalog(query, topk=5):
-    """
-    Token-overlap search over prebuilt keywords with small boosts.
-    """
+    """Fallback keyword search with small brand/category boosts."""
     q = set(toks(query))
     ranked = []
     for it in CATALOG:
         kw = set(it.get("keywords", []))
         score = len(q & kw)
-        brand = (it.get("brand") or "").lower()
-        cat   = (it.get("category") or "").lower()
+        brand, cat = (it.get("brand") or "").lower(), (it.get("category") or "").lower()
         if brand in q: score += 2
         if cat   in q: score += 1
-        if score > 0:
-            ranked.append((score, it))
+        if score > 0: ranked.append((score, it))
     ranked.sort(key=lambda x: x[0], reverse=True)
     return [it for _, it in ranked[:int(topk)]]
+
+# ----- Formatting for frontend -----
+def format_products_text(items, header=None):
+    """Render catalog items in numbered text block for frontend display."""
+    if not items:
+        return "Sorry, I couldn’t find a match in my catalog."
+
+    header = header or "Here are some picks from my catalog:"
+    lines = [header]
+    for idx, it in enumerate(items, 1):
+        name, price = it.get("name", "Unknown"), it.get("price")
+        brand, img  = (it.get("brand") or "").title(), (it.get("image") or "")
+        if price is not None:
+            line = f"{idx}. **{name}** — ${price} · {brand} (image: {img})"
+        else:
+            line = f"{idx}. **{name}** · {brand} (image: {img})"
+        lines.append(line)
+        lines.append("")
+    return "\n".join(lines).rstrip()
 
 '''
 def search_catalog_semantic(query, tag_mapper, topk=5):
@@ -234,27 +202,5 @@ def search_catalog_semantic(query, tag_mapper, topk=5):
 
 '''
 
-def format_products_text(items, header=None):
-    """
-    Render a numbered, readable block the frontend parser understands.
-    """
-    if not items:
-        return "Sorry, I couldn’t find a match in my catalog."
 
-    # default header (text-based search)
-    header = header or "Here are some picks from my catalog:"
-
-    lines = [header]
-    for idx, it in enumerate(items, 1):
-        name  = it.get("name", "Unknown")
-        price = it.get("price")
-        brand = (it.get("brand") or "").title()
-        img   = it.get("image") or ""
-        if price is not None:
-            line = f"{idx}. **{name}** — ${price} · {brand} (image: {img})"
-        else:
-            line = f"{idx}. **{name}** · {brand} (image: {img})"
-        lines.append(line)
-        lines.append("")  # blank line
-    return "\n".join(lines).rstrip()
  

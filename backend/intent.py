@@ -9,10 +9,13 @@ client = OpenAI(api_key=api_key)
 # Cache term->tags to reduce LLM calls
 _LLM_TAG_CACHE = {}  # {term: set(tags)}
 
+# ------------------------------------------------------------
+# Map a user term to catalog tags using LLM
+# ------------------------------------------------------------
 def map_term_to_tags_with_llm(term):
     """
-    Map one user term to 1–5 tags chosen ONLY from TAG_VOCAB.
-    Returns a set of normalized tags.
+    Uses LLM to map a single user-provided term into 1–5 catalog tags 
+    from TAG_VOCAB. Results are cached for reuse.
     """
     term = norm(term)
     if not term:
@@ -25,7 +28,6 @@ def map_term_to_tags_with_llm(term):
         "Return ONLY tags that appear in the provided vocabulary. "
         "Output a comma-separated list of 1-5 tags; return 'none' if nothing fits."
     )
-    # Trim very long vocab if needed
     vocab_str = ", ".join(TAG_VOCAB[:400])
     user = f"term: {term}\nallowed_tags: {vocab_str}\nrespond with tags only."
 
@@ -41,16 +43,19 @@ def map_term_to_tags_with_llm(term):
         print("tag map llm error:", e)
         text = "none"
 
-    # Keep only valid tags
     candidates = [norm(x) for x in re.split(r"[,\n]+", text)]
     tags = set([c for c in candidates if c in TAG_VOCAB])
     _LLM_TAG_CACHE[term] = tags
     return tags
 
+# ------------------------------------------------------------
+# Classify user intent (text vs image, chat vs shopping)
+# ------------------------------------------------------------
 def classify_intent_llm(user_text, has_image, image_url=None):
     """
-    Vision-aware intent classifier.
-    Returns exactly one of: RECOMMEND_TEXT, RECOMMEND_IMAGE, CHAT_TEXT, CHAT_IMAGE
+    Uses LLM to classify user intent into one of:
+    RECOMMEND_TEXT, RECOMMEND_IMAGE, CHAT_TEXT, CHAT_IMAGE.
+    Considers both text and optional image input.
     """
     sys_msg = (
         "You are an intent classifier for a shopping assistant.\n"
@@ -66,13 +71,9 @@ def classify_intent_llm(user_text, has_image, image_url=None):
         "- Return ONLY the label token."
     )
 
-    # Always send a short structured text summary
     text_summary = f"has_image={str(bool(has_image)).lower()}\ntext={user_text or '(empty)'}"
-
-    # Attach the actual image if present
     content = [{"type": "text", "text": text_summary}]
     if image_url:
-        # resolve path -> data URI
         if image_url.startswith("/"):
             img_path = UPLOAD_DIR / image_url.split("/")[-1]
         else:
@@ -99,15 +100,17 @@ def classify_intent_llm(user_text, has_image, image_url=None):
         print("Intent classification error:", e)
         return "CHAT_IMAGE" if has_image else "CHAT_TEXT"
 
+# ------------------------------------------------------------
+# Extract product keywords from an image
+# ------------------------------------------------------------
 def image_to_query(image_url):
     """
-    Convert an uploaded image to compact keywords via the vision model.
-    Returns a short string like 'nike sneakers running' for catalog search.
+    Uses a vision LLM to extract concise product-related keywords 
+    (brand, category, style, color) from an uploaded image.
     """
     if not image_url:
         return ""
 
-    # resolve path -> data URI
     if image_url.startswith("/"):
         img_name = image_url.split("/")[-1]
         img_path = UPLOAD_DIR / img_name

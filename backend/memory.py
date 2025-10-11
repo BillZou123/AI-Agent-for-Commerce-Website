@@ -1,11 +1,18 @@
 from collections import deque
 
-# In-memory session store: { session_id: deque([...]) }
+# ---------- Session Memory ----------
+# Stores chat history for each session in memory.
+# HISTORY is a dictionary keyed by session_id.
+# Each session keeps a bounded deque of turns (user/assistant messages).
+
 HISTORY = {}
-MAX_TURNS = 50
+MAX_TURNS = 50  # cap the number of turns per session
 
 def get_history(session_id):
-    """Return a bounded deque for a session."""
+    """
+    Retrieve the chat history for a given session.
+    If no history exists, create a new deque with MAX_TURNS capacity.
+    """
     if session_id not in HISTORY:
         HISTORY[session_id] = deque(maxlen=MAX_TURNS)
     return HISTORY[session_id]
