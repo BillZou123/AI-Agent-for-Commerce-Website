@@ -2,40 +2,104 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>AI Agent Learning</title>
+  <title>Welcome to BIER</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; max-width: 760px; margin: 40px auto; padding: 0 16px; }
-    h1 { margin: 0 0 8px; }
-    .sub { color: #666; margin: 0 0 16px; font-size: 14px; }
-    .chat { border: 1px solid #ddd; border-radius: 14px; padding: 16px; height: 460px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; background: rgba(0,0,0,0.02); }
-    .msg { padding: 10px 12px; border-radius: 10px; max-width: 80%; white-space: pre-wrap; }
-    .user { background: #e8f0fe; align-self: flex-end; }
-    .bot  { background: #f5f5f5; align-self: flex-start; }
-    .row { display: flex; gap: 8px; margin-top: 12px; }
-    .row input { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #ccc; }
-    .row button { padding: 12px 16px; border: 0; border-radius: 10px; background: #111827; color: #fff; cursor: pointer; }
-    .meta { margin-top: 10px; color: #666; font-size: 12px; }
-    code { background: #f3f3f3; padding: 2px 6px; border-radius: 6px; }
+    :root{
+      --bg:#f8f8f8; --card:#fff; --muted:#666; --line:#e6e6e6;
+      --user:#e8f0fe; --bot:#f5f5f5; --ink:#111827;
+    }
+    *{box-sizing:border-box}
+    body{
+      font-family: system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+      max-width:760px; margin:40px auto; padding:0 16px; background:var(--bg); color:#111;
+    }
+
+    /* Header */
+    .header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+    .avatar{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;
+      font-size:20px;background:#fff;border:1px solid var(--line)}
+    h1{margin:0}
+
+    /* Chat area */
+    .chat{
+      border:1px solid var(--line); border-radius:14px; padding:16px; height:480px;
+      overflow-y:auto; display:flex; flex-direction:column; gap:8px; background:var(--card);
+    }
+    .bubble{padding:10px 12px; border-radius:12px; max-width:80%; white-space:pre-wrap; word-break:break-word;}
+    .user{background:var(--user); align-self:flex-end;}
+    .bot{ background:var(--bot);  align-self:flex-start;}
+    .bubble img{max-width:220px; max-height:180px; border-radius:8px; display:block}
+
+    /* Composer */
+    .composer{display:flex; gap:10px; align-items:center; margin-top:12px}
+    .box{flex:1; display:flex; align-items:center; gap:8px; border:1px solid var(--line);
+      background:var(--card); border-radius:14px; padding:8px 12px}
+    .attach-btn{border:0; background:transparent; font-size:18px; cursor:pointer; line-height:1; color:#444}
+    .attach-btn:hover{color:#000}
+    .box input[type="text"]{flex:1; border:0; outline:none; font-size:16px; background:transparent}
+    .send-btn{width:44px;height:44px;border-radius:50%;border:0;background:var(--ink);color:#fff;
+      font-size:18px;cursor:pointer;display:grid;place-items:center}
+    .send-btn[disabled]{opacity:.7; cursor:not-allowed}
+    #img{display:none} /* hidden file input */
+
+    /* Small chip preview inside composer */
+    .chip{display:flex;align-items:center;gap:6px;padding:4px 6px;border:1px solid #ddd;border-radius:10px;background:#fff}
+    .chip img{width:28px;height:28px;object-fit:cover;border-radius:6px;border:1px solid #e6e6e6}
+    .chip button{border:0;background:transparent;color:#b91c1c;cursor:pointer;font-size:14px;line-height:1}
+    .hidden{display:none}
+
+    /* Typing indicator (three bouncing dots) */
+    .typing { color:#555; font-size:13px; }
+    .dots{ display:inline-flex; gap:4px; vertical-align:middle; margin-left:4px }
+    .dot{ width:6px; height:6px; border-radius:50%; background:#888; opacity:.6; animation: bounce 1s infinite ease-in-out }
+    .dot:nth-child(2){ animation-delay:.15s }
+    .dot:nth-child(3){ animation-delay:.3s }
+    @keyframes bounce{
+      0%,80%,100%{ transform: translateY(0); opacity:.6 }
+      40%{ transform: translateY(-4px); opacity:1 }
+    }
+
+    /* Pop-in animation for new bubbles */
+    .pop { animation: popin .18s ease-out both }
+    @keyframes popin{
+      from{ transform: scale(.97) translateY(6px); opacity:.0 }
+      to  { transform: scale(1)    translateY(0);   opacity:1  }
+    }
+
+    /* hide session meta completely but keep node for JS */
+    .meta{display:none}
   </style>
 </head>
 <body>
-  <h1>AI Agent Learning</h1>
-  <p class="sub">Type a message and press Enter. The agent remembers context per browser session.</p>
-
-  <div id="chat" class="chat"></div>
-
-  <div class="row">
-    <input id="inp" type="text" placeholder="Say something…" />
-    <button id="send">Send</button>
+  <div class="header">
+    <div class="avatar" aria-hidden="true">🐻</div>
+    <h1>Hi!</h1>
   </div>
 
-  <div class="meta">
-    Session: <code id="sid"></code>
+  <div id="chat" class="chat" aria-label="Chat history"></div>
+
+  <div class="composer">
+    <div class="box">
+      <button id="attach" class="attach-btn" title="Attach image" aria-label="Attach image">📎</button>
+
+      <!-- tiny thumbnail chip preview -->
+      <div id="chip" class="chip hidden" aria-live="polite">
+        <img id="chipImg" alt="selected image preview">
+        <button id="chipX" title="Remove">✕</button>
+      </div>
+
+      <input id="inp" type="text" placeholder="Say something…" aria-label="Message input" />
+    </div>
+    <button id="send" class="send-btn" aria-label="Send message">⮕</button>
+    <input id="img" type="file" accept="image/*" />
   </div>
+
+  <!-- keep session id node but hidden so JS doesn’t error -->
+  <div class="meta">Session: <code id="sid"></code></div>
 
   <script>
-    // --- Persistent session_id in the browser ---
+    // --- session id (hidden) ---
     let sessionId = localStorage.getItem('session_id');
     if (!sessionId) {
       sessionId = (crypto.randomUUID && crypto.randomUUID()) || Math.random().toString(36).slice(2);
@@ -43,44 +107,128 @@
     }
     document.getElementById('sid').textContent = sessionId;
 
-    // --- UI elements ---
-    const chat = document.getElementById('chat');
-    const inp  = document.getElementById('inp');
-    const send = document.getElementById('send');
+    // --- elements ---
+    const chat   = document.getElementById('chat');
+    const inp    = document.getElementById('inp');
+    const send   = document.getElementById('send');
+    const img    = document.getElementById('img');
+    const attach = document.getElementById('attach');
 
-    function addMessage(text, who) {
+    const chip   = document.getElementById('chip');
+    const chipImg= document.getElementById('chipImg');
+    const chipX  = document.getElementById('chipX');
+
+    let pendingFile = null;
+
+    function autoscroll(){ chat.scrollTop = chat.scrollHeight; }
+
+    function addTextBubble(text, who){
       const div = document.createElement('div');
-      div.className = `msg ${who}`;
+      div.className = `bubble ${who} pop`;
       div.textContent = text;
       chat.appendChild(div);
-      chat.scrollTop = chat.scrollHeight;
+      autoscroll();
+      return div;
     }
 
-    async function sendMessage() {
+    function addImageBubble(url, who, alt='image'){
+      const div = document.createElement('div');
+      div.className = `bubble ${who} pop`;
+      const im = document.createElement('img');
+      im.src = url; im.alt = alt;
+      div.appendChild(im);
+      chat.appendChild(div);
+      autoscroll();
+      return div;
+    }
+
+    // typing bubble that we will REPLACE with the final reply
+    function showTypingBubble(){
+      const div = document.createElement('div');
+      div.className = 'bubble bot typing pop';
+      div.innerHTML = `Thinking<span class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>`;
+      chat.appendChild(div);
+      autoscroll();
+      return div;
+    }
+
+    attach.addEventListener('click', () => img.click());
+
+    function showChip(file){
+      if(!file) return;
+      pendingFile = file;
+      chipImg.src = URL.createObjectURL(file);
+      chip.classList.remove('hidden');
+    }
+    function clearChip(){
+      pendingFile = null;
+      chipImg.src = '';
+      chip.classList.add('hidden');
+      img.value = '';
+    }
+    chipX.addEventListener('click', clearChip);
+
+    img.addEventListener('change', () => {
+      const f = img.files && img.files[0] ? img.files[0] : null;
+      if (f && f.type.startsWith('image/')) showChip(f);
+    });
+
+    async function sendMessage(){
       const text = inp.value.trim();
-      if (!text) return;
-      addMessage(text, 'user');
+      const file = pendingFile;
+
+      if (!text && !file) return;
+
+      // optimistic user bubbles with animation
+      if (text) addTextBubble(text, 'user');
+      if (file) addImageBubble(URL.createObjectURL(file), 'user', file.name);
+
       inp.value = '';
       send.disabled = true;
 
-      try {
+      // upload image first (if any)
+      let imageUrl = null;
+      if (file) {
+        const fd = new FormData();
+        fd.append('image', file);
+        try{
+          const up = await fetch('/upload', { method:'POST', body: fd });
+          const udata = await up.json();
+          if (udata && udata.url) imageUrl = udata.url;
+        }catch(e){
+          console.error('upload failed', e);
+          addTextBubble('Image upload failed.', 'bot');
+          send.disabled = false; inp.focus();
+          return;
+        }
+        clearChip();
+      }
+
+      // immediately show typing bubble and replace it later
+      const typing = showTypingBubble();
+
+      try{
         const res = await fetch('/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: text, session_id: sessionId })
+          method:'POST',
+          headers:{ 'Content-Type':'application/json' },
+          body: JSON.stringify({ message: text, session_id: sessionId, image_url: imageUrl })
         });
         const data = await res.json();
-        // backend may echo/issue session_id; keep in sync just in case
+
         if (data.session_id && data.session_id !== sessionId) {
           sessionId = data.session_id;
           localStorage.setItem('session_id', sessionId);
           document.getElementById('sid').textContent = sessionId;
         }
-        addMessage(data.reply || '(no reply)', 'bot');
-      } catch (e) {
+
+        // replace typing bubble content with final reply
+        typing.className = 'bubble bot pop';
+        typing.textContent = data.reply || '(no reply)';
+      }catch(e){
         console.error(e);
-        addMessage('Error contacting server.', 'bot');
-      } finally {
+        typing.className = 'bubble bot pop';
+        typing.textContent = 'Error contacting server.';
+      }finally{
         send.disabled = false;
         inp.focus();
       }
@@ -90,7 +238,10 @@
     inp.addEventListener('keydown', (e) => e.key === 'Enter' && sendMessage());
 
     // Greeting
-    addMessage('👋 Hello! What do you wanna chat today? I am always here for you :)', 'bot');
+    addTextBubble('👋 Hello! I am BiBi, your personal shopping assistant.\nHow can I help you today? 😘', 'bot');
+    setTimeout(() => {
+    addTextBubble("✨ Here’s what I can do:\n1️⃣ Chat with you about anything 🗣️\n2️⃣ Suggest awesome products 🎁\n3️⃣ Search by image 🔍 Just upload and I’ll find it!", 'bot');
+  }, 800);
   </script>
 </body>
 </html>
