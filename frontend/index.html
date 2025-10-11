@@ -5,6 +5,13 @@
   <title>Welcome to BIER</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
+    .catalog-header{font-weight:600;margin:0 0 8px;color:#222}
+    .catalog-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap:12px; }
+    .catalog-card { border:1px solid var(--line); background:var(--card); border-radius:12px; padding:10px; }
+    .catalog-card img { width:100%; height:130px; object-fit:cover; border-radius:8px; display:block; }
+    .catalog-title { margin-top:8px; font-weight:600; }
+    .catalog-meta { color:var(--muted); font-size:12px; margin-top:2px; }
+    .catalog-idx { font-weight:700; margin-bottom:6px; color:#555; }
     :root{
       --bg:#f8f8f8; --card:#fff; --muted:#666; --line:#e6e6e6;
       --user:#e8f0fe; --bot:#f5f5f5; --ink:#111827;
@@ -222,8 +229,12 @@
         }
 
         // replace typing bubble content with final reply
-        typing.className = 'bubble bot pop';
-        typing.textContent = data.reply || '(no reply)';
+        const replyText = data.reply || '(no reply)';
+        // Try to render catalog cards; if it returns false, fall back to plain text
+        if (!tryRenderNumberedCatalog(typing, replyText)) {
+          typing.className = 'bubble bot pop';
+          typing.textContent = replyText;
+        }
       }catch(e){
         console.error(e);
         typing.className = 'bubble bot pop';
@@ -234,6 +245,84 @@
       }
     }
 
+    function tryRenderNumberedCatalog(typingDiv, replyText) {
+      if (!replyText) return false;
+
+      // split lines, trim empties
+      const rawLines = replyText.split('\n').map(l => l.trim()).filter(Boolean);
+      if (!rawLines.length) return false;
+
+      // skip optional "(query: ...)" line
+      let i = 0;
+      if (/^\(query:\s*.+\)$/i.test(rawLines[0])) i = 1;
+
+      // require the header
+      const headerLine = rawLines[i] || "";
+      if (!/^Here are some picks from my catalog:/i.test(headerLine)) return false;
+
+      // collect numbered items after the header
+      const itemLines = rawLines.slice(i + 1);
+
+      // 1. **Name** — $1999 · Brand (image: /catalog_images/xxx.jpg)
+      const re = /^\s*(\d+)\.\s+\*\*(.+?)\*\*(?:\s+—\s+\$?([\d.]+))?(?:\s+·\s+([^(]+?))?\s+\(image:\s*(.+?)\s*\)\s*$/;
+
+      const items = [];
+      for (const line of itemLines) {
+        const m = line.match(re);
+        if (!m) continue;
+        const idx   = m[1];
+        const name  = m[2];
+        const price = m[3] ? `$${m[3]}` : '';
+        const brand = (m[4] || '').trim();
+        const img   = m[5];
+        items.push({ idx, name, price, brand, img });
+      }
+      if (!items.length) return false;
+
+      // build a new bubble that includes the header + grid
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble bot pop';
+
+      const head = document.createElement('div');
+      head.className = 'catalog-header';
+      head.textContent = headerLine;
+      bubble.appendChild(head);
+
+      const grid = document.createElement('div');
+      grid.className = 'catalog-grid';
+
+      items.forEach(it => {
+        const card = document.createElement('div');
+        card.className = 'catalog-card';
+
+        const idx = document.createElement('div');
+        idx.className = 'catalog-idx';
+        idx.textContent = `${it.idx}.`;
+
+        const im = document.createElement('img');
+        im.src = it.img;
+        im.alt = it.name;
+
+        const title = document.createElement('div');
+        title.className = 'catalog-title';
+        title.textContent = it.name;
+
+        const meta = document.createElement('div');
+        meta.className = 'catalog-meta';
+        meta.textContent = [it.price, it.brand].filter(Boolean).join(' • ');
+
+        card.appendChild(idx);
+        card.appendChild(im);
+        card.appendChild(title);
+        card.appendChild(meta);
+        grid.appendChild(card);
+      });
+
+      bubble.appendChild(grid);
+      typingDiv.replaceWith(bubble);
+      // autoscroll is already called after replace in your flow
+      return true;
+    }
     send.addEventListener('click', sendMessage);
     inp.addEventListener('keydown', (e) => e.key === 'Enter' && sendMessage());
 
