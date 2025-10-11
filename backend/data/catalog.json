@@ -4,7 +4,7 @@
     "name": "Apple MacBook Pro 14 (M2)",
     "category": "electronics",
     "brand": "apple",
-    "tags": ["macbook", "laptop", "notebook", "retina", "m2"],
+    "tags": ["macbook", "computer", "laptop", "notebook", "retina", "m2", "mac", "macos", "pro", "14-inch", "portable", "ultrabook", "retina display", "workstation", "developer"],
     "image": "/catalog_images/mbp14.jpg",
     "price": 1999
   },
@@ -13,7 +13,7 @@
     "name": "Dell XPS 13",
     "category": "electronics",
     "brand": "dell",
-    "tags": ["xps", "laptop", "ultrabook", "13"],
+    "tags": ["xps", "computer", "laptop", "ultrabook", "i7", "13-inch", "windows", "thin", "lightweight", "ultra portable", "intel"],
     "image": "/catalog_images/xps13.jpg",
     "price": 1299
   },
@@ -22,7 +22,7 @@
     "name": "Sony WH-1000XM5 Wireless Headphones",
     "category": "electronics",
     "brand": "sony",
-    "tags": ["headphones", "wireless", "noise-cancelling", "music"],
+    "tags": ["headphones", "wireless", "noise-cancelling", "music", "bluetooth", "over-ear", "anc", "headset", "hi-fi", "travel", "comfort"],
     "image": "/catalog_images/wh1000xm5.jpg",
     "price": 399
   },
@@ -31,7 +31,7 @@
     "name": "Samsung Galaxy S24 Ultra",
     "category": "electronics",
     "brand": "samsung",
-    "tags": ["smartphone", "android", "galaxy"],
+    "tags": ["smartphone", "phone", "android", "galaxy", "camera", "5g", "flagship", "s-pen", "stylus", "photography", "large screen"],
     "image": "/catalog_images/s24ultra.jpg",
     "price": 1199
   },
@@ -40,7 +40,7 @@
     "name": "Nike Air Zoom Pegasus 40",
     "category": "footwear",
     "brand": "nike",
-    "tags": ["shoes", "running", "sneakers", "sport"],
+    "tags": ["shoes", "running", "sneakers", "sport", "running shoes", "jogging", "road", "training", "cushion", "daily trainer"],
     "image": "/catalog_images/pegasus40.jpg",
     "price": 130
   },
@@ -49,7 +49,7 @@
     "name": "Puma Sports T-shirt",
     "category": "clothing",
     "brand": "puma",
-    "tags": ["t-shirt", "sportswear", "training", "fitness"],
+    "tags": ["t-shirt", "sportswear", "training", "fitness", "tee", "short sleeve", "gym", "workout", "breathable", "moisture-wicking"],
     "image": "/catalog_images/puma_tshirt.jpg",
     "price": 35
   },
@@ -58,7 +58,7 @@
     "name": "Levi's 511 Slim Fit Jeans",
     "category": "clothing",
     "brand": "levis",
-    "tags": ["jeans", "denim", "casual", "pants"],
+    "tags": ["jeans", "denim", "casual", "pants", "slim", "men", "stretch", "five-pocket", "blue jeans", "everyday"],
     "image": "/catalog_images/levis_511.jpg",
     "price": 70
   },
@@ -67,7 +67,7 @@
     "name": "Jaeger-LeCoultre Master Ultra Thin Moon",
     "category": "Watch",
     "brand": "Jaeger-LeCoultre",
-    "tags": ["luxury", "watch", "moon phase", "ultra thin", "automatic", "swiss made"],
+    "tags": ["luxury", "watch", "moon phase", "ultra thin", "automatic", "swiss made", "dress watch", "rose gold", "blue dial", "leather strap", "mechanical", "high-end"],
     "image": "/catalog_images/master_ultra_thin_moon.jpg",
     "price": 34000
   },
@@ -76,7 +76,7 @@
     "name": "IKEA Markus Office Chair",
     "category": "furniture",
     "brand": "ikea",
-    "tags": ["chair", "office", "ergonomic", "furniture"],
+    "tags": ["chair", "office", "ergonomic", "furniture", "high back", "mesh", "lumbar support", "desk chair", "adjustable", "task chair"],
     "image": "/catalog_images/ikea_markus.jpg",
     "price": 250
   },
@@ -85,7 +85,7 @@
     "name": "Dyson V15 Vacuum Cleaner",
     "category": "home appliances",
     "brand": "dyson",
-    "tags": ["vacuum", "cleaner", "home"],
+    "tags": ["vacuum", "cleaner", "home", "cordless", "stick vacuum", "bagless", "hepa", "pet hair", "powerful suction"],
     "image": "/catalog_images/dyson_v15.jpg",
     "price": 699
   }

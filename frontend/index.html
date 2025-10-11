@@ -295,17 +295,27 @@
     function tryRenderNumberedCatalog(typingDiv, replyText) {
       if (!replyText) return false;
 
+      // Split lines and clean up empty ones
       const rawLines = replyText.split('\n').map(l => l.trim()).filter(Boolean);
       if (!rawLines.length) return false;
 
+      // Skip optional "(query: ...)" line
       let i = 0;
       if (/^\(query:\s*.+\)$/i.test(rawLines[0])) i = 1;
 
+      // Extract the header line
       const headerLine = rawLines[i] || "";
-      if (!/^Here are some picks from my catalog:/i.test(headerLine)) return false;
+      // Match both text-based and image-based recommendation headers
+      if (!/^Here are some picks from my catalog/i.test(headerLine) &&
+          !/^Here are some picks from my catalog based on the image you provided/i.test(headerLine)) {
+        return false;
+      }
 
+      // Collect numbered items after the header
       const itemLines = rawLines.slice(i + 1);
 
+      // Match format like:
+      // 1. **Name** — $1999 · Brand (image: /catalog_images/xxx.jpg)
       const re = /^\s*(\d+)\.\s+\*\*(.+?)\*\*(?:\s+—\s+\$?([\d.]+))?(?:\s+·\s+([^(]+?))?\s+\(image:\s*(.+?)\s*\)\s*$/;
 
       const items = [];
@@ -321,6 +331,7 @@
       }
       if (!items.length) return false;
 
+      // Build a new chat bubble with the header and product cards
       const bubble = document.createElement('div');
       bubble.className = 'bubble bot pop';
 

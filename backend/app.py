@@ -7,7 +7,7 @@ import uuid, pathlib
 from .config import FRONTEND_DIR, UPLOAD_DIR, SYSTEM_PROMPT, api_key
 from .utils import allowed_file, encode_image
 from .memory import get_history
-from .catalog import search_catalog_semantic, format_products_text
+from .catalog import search_catalog_llm, format_products_text
 from .intent import classify_intent_llm, image_to_query, map_term_to_tags_with_llm
 
 
@@ -60,7 +60,7 @@ def chat():
     data = request.get_json(force=True) or {}
     user_msg  = (data.get("message") or "").strip()
     session_id = data.get("session_id") or str(uuid.uuid4())
-    image_url = data.get("image_url")  # optional
+    image_url = data.get("image_url")  
 
     if not user_msg and not image_url:
         return jsonify({"reply": "Please send a message or attach an image.",
@@ -75,8 +75,12 @@ def chat():
     if intent == "RECOMMEND_IMAGE":
         q_img = image_to_query(image_url) if image_url else ""
         query = f"{user_msg} {q_img}".strip() if user_msg else (q_img or "product")
-        items = search_catalog_semantic(user_msg or q_img, tag_mapper=map_term_to_tags_with_llm, topk=5)
-        reply = f"(query: {query})\n" + format_products_text(items)
+        print("***************checking query*****************")
+        print(query)
+        #items = search_catalog_semantic(query, tag_mapper=map_term_to_tags_with_llm, topk=5)
+        items = search_catalog_llm(query, topk=2, threshold=0.8)
+        img_header = "Here are some picks from my catalog based on the image you provided:"
+        reply = format_products_text(items, header=img_header)
 
         # Store user turn (image + optional text)
         if image_url:
@@ -95,11 +99,14 @@ def chat():
             hist.append({"role":"user","content": user_msg or "(image)"})
 
         hist.append({"role":"assistant","content": reply})
+        print("check reply")
+        print(reply)
         return jsonify({"reply": reply, "session_id": session_id})
 
     # --- Branch: recommendation via TEXT
     if intent == "RECOMMEND_TEXT":
-        items = search_catalog_semantic(user_msg, tag_mapper=map_term_to_tags_with_llm, topk=5)
+        #items = search_catalog_semantic(user_msg, tag_mapper=map_term_to_tags_with_llm, topk=5)
+        items = search_catalog_llm(user_msg, topk=5, threshold=0.6)
         reply = format_products_text(items)
         hist.append({"role":"user","content": user_msg})
         hist.append({"role":"assistant","content": reply})
