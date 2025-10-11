@@ -13,6 +13,7 @@ from .intent import classify_intent_llm, image_to_query, map_term_to_tags_with_l
 # Ensure NLTK punkt is available (safe no-op if already downloaded)
 try:
     nltk.download("punkt", quiet=True)
+    nltk.download('punkt_tab')
 except Exception:
     pass
 
