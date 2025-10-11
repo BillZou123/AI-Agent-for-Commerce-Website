@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 from openai import OpenAI
-import uuid, pathlib, nltk
+import uuid, pathlib
 
 # Local modules
 from .config import FRONTEND_DIR, UPLOAD_DIR, SYSTEM_PROMPT, api_key
@@ -10,12 +10,7 @@ from .memory import get_history
 from .catalog import search_catalog_semantic, format_products_text
 from .intent import classify_intent_llm, image_to_query, map_term_to_tags_with_llm
 
-# Ensure NLTK punkt is available (safe no-op if already downloaded)
-try:
-    nltk.download("punkt", quiet=True)
-    nltk.download('punkt_tab')
-except Exception:
-    pass
+
 
 client = OpenAI(api_key=api_key)
 

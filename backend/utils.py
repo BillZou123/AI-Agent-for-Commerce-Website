@@ -1,6 +1,6 @@
 import base64
 import string
-from nltk.tokenize import word_tokenize
+import re
 
 ALLOWED_EXTS = {"png", "jpg", "jpeg", "gif", "webp"}
 
@@ -14,11 +14,8 @@ def encode_image(image_path):
         return base64.b64encode(f.read()).decode("utf-8")
 
 def toks(s):
-    """Lowercase tokenize and strip punctuation."""
-    if not s:
-        return []
-    tokens = word_tokenize(s.lower())
-    return [t for t in tokens if t not in string.punctuation]
+    # lowercase + only keep alphanumeric tokens
+    return re.findall(r"[a-z0-9]+", (s or "").lower())
 
 def norm(s):
     """Simple normalization for tags/brands/categories."""
