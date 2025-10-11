@@ -64,12 +64,12 @@
   },
   {
     "id": "p8",
-    "name": "Ray-Ban Aviator Sunglasses",
-    "category": "accessories",
-    "brand": "ray-ban",
-    "tags": ["sunglasses", "aviator", "fashion", "accessory"],
-    "image": "/catalog_images/rayban_aviator.jpg",
-    "price": 150
+    "name": "Jaeger-LeCoultre Master Ultra Thin Moon",
+    "category": "Watch",
+    "brand": "Jaeger-LeCoultre",
+    "tags": ["luxury", "watch", "moon phase", "ultra thin", "automatic", "swiss made"],
+    "image": "/catalog_images/master_ultra_thin_moon.jpg",
+    "price": 34000
   },
   {
     "id": "p9",
