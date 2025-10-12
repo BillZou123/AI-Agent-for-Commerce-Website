@@ -1,3 +1,9 @@
+
+# =============================================================================
+#          DEPRECATED / NOT IN USE
+# =============================================================================
+
+
 import json
 from .config import CATALOG_JSON
 from .utils import toks, norm

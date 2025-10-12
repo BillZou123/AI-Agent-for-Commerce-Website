@@ -1,3 +1,8 @@
+
+# =============================================================================
+#          DEPRECATED / NOT IN USE
+# =============================================================================
+
 import re
 from openai import OpenAI
 from .config import api_key, UPLOAD_DIR, ROOT
@@ -138,3 +143,4 @@ def image_to_query(image_url):
     except Exception as e:
         print("Vision extract error:", e)
         return ""
+    

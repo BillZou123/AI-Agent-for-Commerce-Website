@@ -1,22 +1,16 @@
 from flask import Flask, request, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 from openai import OpenAI
-import uuid, pathlib
+import uuid, pathlib, json, re
 
-# ----- Project modules -----
 from .config import FRONTEND_DIR, UPLOAD_DIR, SYSTEM_PROMPT, api_key
 from .utils import allowed_file, encode_image
 from .memory import get_history
-from .catalog import search_catalog_llm, format_products_text
-from .intent import classify_intent_llm, image_to_query, map_term_to_tags_with_llm
-
 
 client = OpenAI(api_key=api_key)
-
-# ----- App setup -----
 app = Flask(__name__, static_folder=str(FRONTEND_DIR), static_url_path="")
 
-# ----- Routes: frontend -----
+# --- Serve frontend ---
 @app.route("/", methods=["GET"])
 def index():
     return send_from_directory(app.static_folder, "index.html")
@@ -25,7 +19,7 @@ def index():
 def serve_upload(filename):
     return send_from_directory(str(UPLOAD_DIR), filename)
 
-# ----- Routes: image upload -----
+# --- Handle image uploads ---
 @app.route("/upload", methods=["POST"])
 def upload_image():
     if "image" not in request.files:
@@ -38,22 +32,44 @@ def upload_image():
 
     filename = secure_filename(f.filename)
     dest = UPLOAD_DIR / filename
-
-    i = 1
-    stem, suffix = dest.stem, dest.suffix
+    i, stem, suffix = 1, dest.stem, dest.suffix
     while dest.exists():
         dest = UPLOAD_DIR / f"{stem}_{i}{suffix}"
         i += 1
-
     f.save(dest)
-    public_url = f"/uploads/{dest.name}"
-    return jsonify({"ok": True, "url": public_url})
+    return jsonify({"ok": True, "url": f"/uploads/{dest.name}"})
 
-# ----- Routes: chat (text + image + product recs) -----
+
+# --- Extract product items from model reply ---
+_JSON_BLOCK = re.compile(r"```json\s*(\{[\s\S]*?\})\s*```", re.IGNORECASE)
+
+def extract_items_from_reply(text):
+    m = _JSON_BLOCK.search(text or "")
+    if not m:
+        return []
+    try:
+        obj = json.loads(m.group(1))
+        items = obj.get("items") or []
+        return [
+            {
+                "id": it.get("id"),
+                "name": it.get("name"),
+                "price": it.get("price"),
+                "category": it.get("category"),
+                "image": it.get("image"),
+            }
+            for it in items
+            if isinstance(it, dict) and "id" in it and "name" in it
+        ]
+    except Exception:
+        return []
+
+
+# --- Chat endpoint  ---
 @app.route("/chat", methods=["POST"])
 def chat():
     data = request.get_json(force=True) or {}
-    user_msg  = (data.get("message") or "").strip()
+    user_msg = (data.get("message") or "").strip()
     session_id = data.get("session_id") or str(uuid.uuid4())
     image_url = data.get("image_url")
 
@@ -63,44 +79,13 @@ def chat():
 
     hist = get_history(session_id)
 
-    # Decide user intent
-    intent = classify_intent_llm(user_msg, bool(image_url), image_url=image_url)
-
-    # --- Branch: image-based recommendations ---
-    if intent == "RECOMMEND_IMAGE":
-        q_img = image_to_query(image_url) if image_url else ""
-        query = f"{user_msg} {q_img}".strip() if user_msg else (q_img or "product")
-        items = search_catalog_llm(query, topk=2, threshold=0.8)
-        img_header = "Here are some picks from my catalog based on the image you provided:"
-        reply = format_products_text(items, header=img_header)
-
-        if image_url:
-            if image_url.startswith("/"):
-                img_path = UPLOAD_DIR / pathlib.Path(image_url).name
-            else:
-                img_path = pathlib.Path(image_url)
-            encoded = encode_image(img_path)
-            parts = []
-            if user_msg:
-                parts.append({"type":"text", "text": user_msg})
-            parts.append({"type":"image_url", "image_url":{"url": f"data:image/jpeg;base64,{encoded}"}})
-            hist.append({"role":"user","content": parts})
-        else:
-            hist.append({"role":"user","content": user_msg or "(image)"})
-
-        hist.append({"role":"assistant","content": reply})
-        return jsonify({"reply": reply, "session_id": session_id})
-
-    # --- Branch: text-based recommendations ---
-    if intent == "RECOMMEND_TEXT":
-        items = search_catalog_llm(user_msg, topk=5, threshold=0.6)
-        reply = format_products_text(items)
-        hist.append({"role":"user","content": user_msg})
-        hist.append({"role":"assistant","content": reply})
-        return jsonify({"reply": reply, "session_id": session_id})
-
-    # --- Branch: general chat ---
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    schema_hint = (
+        "If your response contain any products from the catalog, after your reply append a fenced JSON block:\n"
+        "```json\n{ \"items\": [ {\"id\":\"...\",\"name\":\"...\",\"price\":0,\"category\":\"...\",\"image\":null} ] }\n```\n"
+        "Only include JSON if your response actually contain product items from the catalog."
+    )
+    messages.append({"role": "system", "content": schema_hint})
     messages.extend(list(hist))
 
     if image_url:
@@ -115,29 +100,26 @@ def chat():
         user_content.append({"type":"image_url","image_url":{"url": f"data:image/jpeg;base64,{encoded}"}})
         messages.append({"role":"user","content": user_content})
     else:
-        messages.append({"role":"user","content": user_msg})
+        messages.append({"role": "user", "content": user_msg})
 
     resp = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=messages,
         temperature=0.5,
     )
-    reply = resp.choices[0].message.content
+    reply_text = resp.choices[0].message.content or ""
+    items = extract_items_from_reply(reply_text)
 
     if image_url:
-        hist.append({"role":"user","content": user_content})
+        hist.append({"role": "user", "content": user_content})
     else:
-        hist.append({"role":"user","content": user_msg})
-    hist.append({"role":"assistant","content": reply})
+        hist.append({"role": "user", "content": user_msg})
+    hist.append({"role": "assistant", "content": reply_text})
 
-    return jsonify({"reply": reply, "session_id": session_id})
+    #print(reply_text)
+    return jsonify({"reply": reply_text, "session_id": session_id, "items": items})
 
-# ----- Routes: catalog debug -----
-from .catalog import CATALOG
-@app.route("/catalog", methods=["GET"])
-def get_catalog():
-    return jsonify(CATALOG)
 
-# ----- Dev entrypoint -----
+# --- Run server ---
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=8000, debug=True)
