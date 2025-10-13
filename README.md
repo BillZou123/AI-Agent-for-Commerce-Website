@@ -1,2 +1,76 @@
-# AI-Agent-for-Commerce-Website
-AI shopping assistant for a commerce site: single agent that chats, recommends products from a catalog, and finds look-alikes from an image.  哇哇哇哇哇哇
+# AI Agent for Commerce Website
+
+This project implements an AI-powered shopping assistant that can:
+- Engage in **general conversation** with users
+- Provide **text-based product recommendations** from a predefined catalog
+- Perform **image-based product search**, returning matching items from the catalog
+
+The goal is to deliver a single agent that can handle all 3 scenarios through a unified conversational interface.
+
+---
+
+## 🚀 Deployment
+
+The agent is deployed on **Render** and can be accessed here:
+
+👉 [Live Demo](http://ai-agent-fosr-commerce-website-1.onrender.com/)
+
+---
+
+## 🧩 Design Choices
+
+### 1. Backend Model (OpenAI)
+- **Choice**: We use the OpenAI GPT-4o-mini model as the backend LLM.  
+- **Reasoning**:
+  - Provides strong natural language understanding for both casual conversation and structured queries.  
+  - Supports **multi-modal inputs** (text + image), enabling image-based product search.  
+  - Reliable API with good latency for real-time chat interfaces.  
+- **Alternatives**:
+  - Could use open-source models like LLaMA or Mistral, but these require hosting and fine-tuning infrastructure.  
+  - Chose OpenAI for ease of deployment and speed for this exercise.
+
+---
+
+### 2. Product Catalog
+- **Definition**: The catalog is a JSON file (`backend/data/catalog.json`) containing product entries with attributes:
+  - `id`, `name`, `price`, `category`, and `image`.  
+- **Choice**: Simple JSON format makes it easy to update and parse.  
+- **Alternatives**:
+  - A database (e.g., PostgreSQL, MongoDB) would be more scalable.  
+  - For this exercise, JSON is sufficient and lightweight.
+
+---
+
+### 3. Product Search & Recommendation
+- **Current Approach**: **Prompt engineering** – the LLM is instructed to generate recommendations by reasoning over the provided catalog context.  
+- **Advantages**:
+  - No external retrieval infra needed.  
+  - Fast prototyping and flexible responses.  
+- **Limitations**:
+  - The LLM may occasionally hallucinate if not grounded properly.  
+- **Alternatives**:
+  - **RAG (Retrieval-Augmented Generation)**: Use embeddings + vector search to fetch candidate products, then let the LLM refine results.  
+  - Would improve accuracy for larger catalogs.  
+- **Decision**: Chose prompt engineering for simplicity, but I acknowledge that RAG would be a natural next step.
+
+---
+
+### 4. Frontend Design
+- **Choice**: A lightweight HTML + JavaScript frontend:
+  - Supports message bubbles for chat.  
+  - Renders product recommendations as **cards** with images, price, and brand for better visualization.
+  - Allows image upload with preview chip UI.  
+- **Alternatives**:
+  - Could use a frontend framework like React for scalability.  
+  - For this exercise, plain HTML/JS is enough for clarity and deployment.
+
+---
+
+### 5. Session Memory
+- **Choice**: Session context is stored in memory using Python `deque` per session ID.  
+- **Reasoning**: Keeps conversations coherent within a session.  
+- **Alternatives**:
+  - Persistent storage with database would be required for long-lived sessions or scaling.  
+- **Decision**: In-memory storage is fine for a demo deployment.
+
+---
