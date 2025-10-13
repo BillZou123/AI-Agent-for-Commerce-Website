@@ -13,7 +13,7 @@ The goal is to deliver a single agent that can handle all 3 scenarios through a 
 
 The agent is deployed on **Render** and can be accessed here:
 
-👉 [Live Demo](http://ai-agent-fosr-commerce-website-1.onrender.com/)
+👉 [Live Demo](https://ai-agent-for-commerce-website-1.onrender.com/)
 
 👉 For full API details (requests, responses, examples), please see **[API.md](API.md)**.
 
