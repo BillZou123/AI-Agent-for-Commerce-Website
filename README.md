@@ -15,6 +15,7 @@ The agent is deployed on **Render** and can be accessed here:
 
 👉 [Live Demo](http://ai-agent-fosr-commerce-website-1.onrender.com/)
 
+👉 For full API details (requests, responses, examples), please see **[API.md](API.md)**.
 ---
 
 ## 🧩 Design Choices
