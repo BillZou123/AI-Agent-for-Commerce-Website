@@ -311,16 +311,19 @@
           sessionId = data.session_id; localStorage.setItem('session_id', sessionId);
           document.getElementById('sid').textContent = sessionId;
         }
+        const replyText = data.reply || '(no reply)';
+        const cleanReply = stripJsonBlocks(replyText);
+        typing.className = 'bubble bot pop';
+        typing.textContent = cleanReply;
 
         // Prefer structured items from backend
         if (Array.isArray(data.items) && data.items.length > 0) {
-          renderCardsFromItems(typing, data.items, 'Here are some picks from my catalog:');
+          renderCardsFromItems(typing, data.items, '');
         } else {
           // Fall back to text or numbered block parsing
-          const replyText = data.reply || '(no reply)';
           if (!tryRenderNumberedCatalog(typing, replyText)) {
             typing.className = 'bubble bot pop';
-            typing.textContent = replyText;
+            typing.textContent = cleanReply;
           }
         }
       }catch(e){
@@ -332,7 +335,7 @@
       }
     }
 // Render product cards from backend `items`
-    function renderCardsFromItems(typingDiv, items, headerText = 'Here are some picks from my catalog:'){
+    function renderCardsFromItems(typingDiv, items, headerText = ''){
       const bubble = document.createElement('div');
       bubble.className = 'bubble bot pop';
 
@@ -364,8 +367,9 @@
       });
 
       bubble.appendChild(grid);
-      typingDiv.replaceWith(bubble);
-      setTimeout(autoscroll, 0);
+       // insert AFTER the anchor bubble
+      typingDiv.insertAdjacentElement('afterend', bubble);
+      setTimeout(() => { chat.scrollTop = chat.scrollHeight; }, 0);
     }
 
    
@@ -399,6 +403,17 @@
       renderCardsFromItems(typingDiv, items, headerLine);
       return true;
     }
+
+    function stripJsonBlocks(text) {
+      // Remove fenced code blocks like ```json ... ```
+      text = text.replace(/```json[\s\S]*?```/gi, '').trim();
+
+      // Optionally remove standalone { ... } JSON blobs
+      text = text.replace(/\{[\s\S]*?\}/g, '').trim();
+
+      return text;
+    }
+
     // =============================
     // EVENTS
     // =============================
