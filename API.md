@@ -114,3 +114,17 @@ curl http://ai-agent-fosr-commerce-website-1.onrender.com/catalog
 }
 ]
 }
+
+
+## GET `/`
+
+Serve the frontend UI (index.html).
+
+### Request
+```
+curl http://ai-agent-fosr-commerce-website-1.onrender.com/
+
+```
+
+### Response
+(HTML document — the chat web app)
