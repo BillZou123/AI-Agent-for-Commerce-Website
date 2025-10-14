@@ -116,7 +116,7 @@ def chat():
         hist.append({"role": "user", "content": user_msg})
     hist.append({"role": "assistant", "content": reply_text})
 
-    #print(reply_text)
+    print(reply_text)
     return jsonify({"reply": reply_text, "session_id": session_id, "items": items})
 
 
