@@ -82,8 +82,11 @@ def chat():
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
     schema_hint = (
         "If your response contain any products from the catalog, after your reply append a fenced JSON block:\n"
-        "```json\n{ \"items\": [ {\"id\":\"...\",\"name\":\"...\",\"price\":0,\"category\":\"...\",\"image\":null} ] }\n```\n"
+        "```json\n{ \"items\": [ {\"id\":\"...\",\"name\":\"...\",\"price\":0,\"category\":\"...\",\"image\":image_path} ] }\n```\n"
         "Only include JSON if your response actually contain product items from the catalog."
+
+        "You can only include file paths inside the JSON block, for example when the user is asking for an image of a product, itstead of showing the img path in our text reply, just append the JSON block of that product in your reply, so that my frontend will render the image."
+
     )
     messages.append({"role": "system", "content": schema_hint})
     messages.extend(list(hist))
