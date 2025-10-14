@@ -24,12 +24,14 @@ The agent is deployed on **Render** and can be accessed here:
 ### 1. Backend Model (OpenAI)
 - **Choice**: We use the OpenAI GPT-4o-mini model as the backend LLM.  
 - **Reasoning**:
-  - Provides strong natural language understanding for both casual conversation and structured queries.  
+  - Provides strong natural language understanding for both casual conversation and structured queries on catalog. 
   - Supports **multi-modal inputs** (text + image), enabling image-based product search.  
   - Reliable API with good latency for real-time chat interfaces.  
+  - The agent is designed to have engaging conversations with the customer by asking cross sell questions so the user is happy to stay and explore more.
+
 - **Alternatives**:
-  - Could use open-source models like LLaMA or Mistral, but these require hosting and fine-tuning infrastructure.  
-  - Chose OpenAI for ease of deployment and speed for this exercise.
+  - Could use open-source models like LLaMA or Mistral, but these require hosting and fine-tuning infrastructure. However, open-source models are better in terms of privacy. It is an option worth considering.
+  - I chose OpenAI for ease of deployment and speed for this exercise.
 
 ---
 
@@ -69,7 +71,7 @@ The agent is deployed on **Render** and can be accessed here:
 ---
 
 ### 5. Session Memory
-- **Choice**: Session context is stored in memory using Python `deque` per session ID.  
+- **Choice**: Session context is stored in memory using Python `deque` per session ID. The agent has a memory of 50 messages.
 - **Reasoning**: Keeps conversations coherent within a session.  
 - **Alternatives**:
   - Persistent storage with database would be required for long-lived sessions or scaling.  

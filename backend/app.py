@@ -103,7 +103,7 @@ def chat():
         messages.append({"role": "user", "content": user_msg})
 
     resp = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-4o",
         messages=messages,
         temperature=0.5,
     )
