@@ -19,6 +19,27 @@ def index():
 def serve_upload(filename):
     return send_from_directory(str(UPLOAD_DIR), filename)
 
+@app.route("/catalog", methods=["GET"])
+def show_catalog():
+
+    catalog_path = pathlib.Path(__file__).parent / "data" / "catalog.json"
+
+    if not catalog_path.exists():
+        return jsonify({"error": f"catalog.json not found at {catalog_path}"}), 404
+
+    try:
+        with open(catalog_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except json.JSONDecodeError as e:
+        return jsonify({"error": f"Invalid JSON format: {e}"}), 500
+
+    if isinstance(data, dict) and "items" in data:
+        items = data["items"]
+    else:
+        items = data
+
+    return jsonify(items)
+
 # --- Handle image uploads ---
 @app.route("/upload", methods=["POST"])
 def upload_image():
