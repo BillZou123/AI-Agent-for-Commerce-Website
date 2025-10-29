@@ -24,7 +24,7 @@ Chat with the AI agent. Accepts text and optional image.
 
 ### Request
 ```
-curl -X POST http://ai-agent-for-commerce-website-1.onrender.com/chat \
+curl -X POST https://ai-agent-for-commerce-website-1.onrender.com/chat \
   -H "Content-Type: application/json" \
   -d '{
         "message": "Show me laptops",
@@ -60,7 +60,7 @@ Upload an image to the server and receive a public URL (to pass as image_url to 
 
 ### Request
 ```
-curl -X POST http://ai-agent-for-commerce-website-1.onrender.com/upload \
+curl -X POST https://ai-agent-for-commerce-website-1.onrender.com/upload \
   -F "image=@/path/to/photo.jpg"
 
 •	image (file, required): Multipart form-data field name is image (jpeg/png/webp, etc.)
@@ -80,7 +80,7 @@ Fetch an uploaded file by filename (the same path returned by /upload).
 
 ### Request
 ```
-curl http://ai-agent-for-commerce-website-1.onrender.com/uploads/photo_1.jpg --output photo_1.jpg
+curl https://ai-agent-for-commerce-website-1.onrender.com/uploads/photo_1.jpg --output photo_1.jpg
 
 •	filename (path param, required): The exact filename (or nested path) under /uploads/ as returned by /upload.
 
@@ -97,7 +97,7 @@ Return the predefined product catalog JSON that the agent can recommend from.
 
 ### Request
 ```
-curl http://ai-agent-fosr-commerce-website-1.onrender.com/catalog
+curl https://ai-agent-fosr-commerce-website-1.onrender.com/catalog
 
 
 ```
@@ -122,7 +122,7 @@ Serve the frontend UI (index.html).
 
 ### Request
 ```
-curl http://ai-agent-for-commerce-website-1.onrender.com/
+curl https://ai-agent-for-commerce-website-1.onrender.com/
 
 ```
 
