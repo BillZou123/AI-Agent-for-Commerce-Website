@@ -30,15 +30,11 @@ def show_catalog():
     try:
         with open(catalog_path, "r", encoding="utf-8") as f:
             data = json.load(f)
+            return jsonify(data)
+            
     except json.JSONDecodeError as e:
         return jsonify({"error": f"Invalid JSON format: {e}"}), 500
 
-    if isinstance(data, dict) and "items" in data:
-        items = data["items"]
-    else:
-        items = data
-
-    return jsonify(items)
 
 # --- Handle image uploads ---
 @app.route("/upload", methods=["POST"])
