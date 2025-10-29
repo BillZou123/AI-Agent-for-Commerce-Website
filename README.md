@@ -22,7 +22,7 @@ The agent is deployed on **Render** and can be accessed here:
 ## 🧩 Design Choices
 
 ### 1. Backend Model (OpenAI)
-- **Choice**: We use the OpenAI GPT-4o-mini model as the backend LLM.  
+- **Choice**: We use the OpenAI GPT-4o model as the backend LLM.  
 - **Reasoning**:
   - Provides strong natural language understanding for both casual conversation and structured queries on catalog. 
   - Supports **multi-modal inputs** (text + image), enabling image-based product search.  
