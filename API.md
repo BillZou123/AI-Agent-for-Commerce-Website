@@ -97,7 +97,7 @@ Return the predefined product catalog JSON that the agent can recommend from.
 
 ### Request
 ```
-curl https://ai-agent-fosr-commerce-website-1.onrender.com/catalog
+curl https://ai-agent-for-commerce-website-1.onrender.com/catalog
 
 
 ```
